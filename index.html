@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Stock Gudang Produksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root{--card-bg:#ffffff;--muted:#6c757d}
+        html,body{height:100%}
+        body{background:linear-gradient(180deg,#0d6efd08 0%,#e9eefc 60%),#f8f9fa}
+        .hidden { display: none; }
+        #errorMessage { min-height: 24px; }
+        .login-card{border-radius:12px;overflow:hidden}
+        .brand{height:60px;width:60px;border-radius:12px;background:linear-gradient(135deg,#0d6efd,#6610f2);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px}
+        .card-body { padding: 2rem; }
+        .form-control:focus{box-shadow:0 0 0 .15rem rgba(13,110,253,.15)}
+        /* Loading overlay: center on screen as an overlay */
+        #loadingContainer{
+            position:fixed;
+            inset:0; /* top:0; right:0; bottom:0; left:0 */
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:rgba(255,255,255,0.65);
+            z-index:1050;
+            padding:1rem;
+        }
+        /* Ensure .hidden still hides the loading container despite the ID rule */
+        #loadingContainer.hidden{display:none}
+        @media (max-width:420px){ .card{width:100% !important;margin:0 12px} .brand{height:50px;width:50px;font-size:18px} }
+    </style>
+    <!-- new PWA/meta tags -->
+    <meta name="description" content="Stock Gudang Produksi — manajemen inventory racking" />
+    <meta name="theme-color" content="#0d6efd" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+</head>
+<body class="bg-light">
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card shadow login-card" style="width: 400px;">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="brand me-3">SG</div>
+                    <div>
+                        <h4 class="mb-0">Stock Gudang</h4>
+                        <small class="text-muted">Gudang Produksi</small>
+                    </div>
+                </div>
+                <!-- Pesan Error -->
+                <div id="errorMessage" class="text-danger text-center mb-3"></div>
+
+                <!-- LOGIN FORM -->
+                <div id="loginContainer">
+                    <h2 class="text-center mb-4">Login</h2>
+                    <form id="loginForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" required>
+                            <div class="invalid-feedback">Please enter your email.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1">Show</button>
+                            </div>
+                            <div class="invalid-feedback">Please enter your password.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                    </form>
+                    <p class="text-center mt-3">Don't have an account? <a href="#" id="showRegisterForm">Register</a></p>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div id="registerContainer" class="hidden">
+                    <h2 class="text-center mb-4">Register</h2>
+                    <form id="registerForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" placeholder="Enter your email" required>
+                            <div class="invalid-feedback">Please enter your email.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="registerPassword" placeholder="Create your password" required>
+                            <div class="invalid-feedback">Please enter your password.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
+                            <div class="invalid-feedback">Please confirm your password.</div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Register</button>
+                    </form>
+                    <p class="text-center mt-3">Already have an account? <a href="#" id="showLoginForm">Login</a></p>
+                </div>
+            </div>
+        </div>
+        <div id="loadingContainer" class="hidden">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                <div class="mt-2">Loading…</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Use shared firebase initialization from ./js/firebase.js
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
+        import { auth } from './js/firebase.js';
+
+        // Redirect page after login
+        const redirectAfterLogin = 'dashboard.html';
+
+        // DOM elements
+        const loginContainer = document.getElementById('loginContainer');
+        const registerContainer = document.getElementById('registerContainer');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+
+        // Track which view is active so toggleLoading can restore it
+        let currentView = 'login';
+
+        // Helper functions
+        const displayError = (message) => {
+            errorMessage.textContent = message;
+            // Accessible live region
+            errorMessage.setAttribute('role','alert');
+            // Auto-clear after 6s
+            if (message) setTimeout(() => { if (errorMessage.textContent === message) errorMessage.textContent = ''; }, 6000);
+        };
+
+        const toggleLoading = (isLoading) => {
+            if (isLoading) {
+                loadingContainer.classList.remove('hidden');
+                loginContainer.classList.add('hidden');
+                registerContainer.classList.add('hidden');
+            } else {
+                loadingContainer.classList.add('hidden');
+                // Restore visible view
+                if (currentView === 'login') loginContainer.classList.remove('hidden');
+                if (currentView === 'register') registerContainer.classList.remove('hidden');
+            }
+        };
+
+        // Show/Hide forms
+                document.getElementById('showRegisterForm').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentView = 'register';
+                        loginContainer.classList.add('hidden');
+                        registerContainer.classList.remove('hidden');
+                        document.getElementById('registerEmail').focus();
+                });
+
+                document.getElementById('showLoginForm').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentView = 'login';
+                        registerContainer.classList.add('hidden');
+                        loginContainer.classList.remove('hidden');
+                        document.getElementById('loginEmail').focus();
+                });
+
+                // Toggle password visibility
+                if (togglePasswordBtn) {
+                    togglePasswordBtn.addEventListener('click', () => {
+                        const pw = document.getElementById('loginPassword');
+                        if (pw.type === 'password') { pw.type = 'text'; togglePasswordBtn.textContent = 'Hide'; }
+                        else { pw.type = 'password'; togglePasswordBtn.textContent = 'Show'; }
+                    });
+                }
+
+        // Auto-login
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log(`Selamat datang, ${user.email}`);
+                window.location.href = redirectAfterLogin;
+            } else {
+                currentView = 'login';
+                toggleLoading(false);
+            }
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            toggleLoading(true);
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('User signed in:', userCredential.user);
+                window.location.href = redirectAfterLogin;
+            } catch (error) {
+                // Friendly message mapping for common errors
+                const msg = /auth\/(user-not-found|invalid-email)/.test(error.code || '') ? 'Email tidak ditemukan atau format salah.' :
+                  /auth\/(wrong-password)/.test(error.code || '') ? 'Password salah. Coba lagi.' :
+                  error.message || 'Gagal login.';
+                displayError(msg);
+                // restore form
+                currentView = 'login';
+                loginContainer.classList.remove('hidden');
+            } finally {
+                toggleLoading(false);
+            }
+        });
+
+        // Register form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+            if (password !== confirmPassword) {
+                displayError('Passwords do not match!');
+                return;
+            }
+
+            toggleLoading(true);
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log('User registered:', userCredential.user);
+                alert('Registration successful! Please log in.');
+                document.getElementById('showLoginForm').click();
+            } catch (error) {
+                const msg = error.message || 'Gagal registrasi.';
+                displayError(msg);
+                currentView = 'register';
+                registerContainer.classList.remove('hidden');
+            } finally {
+                toggleLoading(false);
+            }
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container">
+        <div>© secca 2025</div>
+      </div>
+    </footer>
+
+    <!-- Register Service Worker (enables installability & offline support) -->
+    <script type="module" src="js/register-sw.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // requires you to set a custom claim `admin: true` for admin users
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isValidString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    function isNonNegativeInt(value) {
+      return value is int && value >= 0;
+    }
+
+    function isDateLike(value) {
+      // Accept timestamp or simple YYYY-MM-DD string
+      return value is timestamp || (value is string && value.matches('^\\d{4}-\\d{2}-\\d{2}$'));
+    }
+
+    // ------------------ products collection ------------------
+    match /products/{productId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasAll(['gudang','level','kodeBarang','kode','tanggalExp','jumlah','satuan','cycle','info','createdAt']) &&
+        isValidString(request.resource.data.gudang, 20) &&
+        isValidString(request.resource.data.level, 10) &&
+        isValidString(request.resource.data.kodeBarang, 50) &&
+        isValidString(request.resource.data.kode, 20) &&
+        isDateLike(request.resource.data.tanggalExp) &&
+        isNonNegativeInt(request.resource.data.jumlah) &&
+        isValidString(request.resource.data.satuan, 30) &&
+        (request.resource.data.cycle is int) &&
+  (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) &&
+        // createdAt must be server time (client should use serverTimestamp()).
+        // Allow either the server-resolved timestamp (== request.time) OR a client-provided
+        // timestamp, but only if it's NOT in the future (<= request.time). This prevents
+        // simple tampering while allowing clients that for some reason send a timestamp.
+        (
+          request.resource.data.createdAt == request.time ||
+          (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time)
+        );
+
+      allow update: if isSignedIn() && (
+        // admin can update anything
+        isAdmin() ||
+        // non-admin can update specific allowed fields and must not change createdAt
+        (
+            // ensure createdAt is unchanged if provided; allow updates that omit createdAt
+            ( !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt ) &&
+          // allowed updatable fields are a subset
+          request.resource.data.keys().hasOnly(resource.data.keys().union(['gudang','level','kodeBarang','kode','tanggalExp','jumlah','satuan','cycle','info','holdUntil'])) &&
+          // validate types when present
+          ( !('gudang' in request.resource.data) || isValidString(request.resource.data.gudang, 20) ) &&
+          ( !('level' in request.resource.data) || isValidString(request.resource.data.level, 10) ) &&
+          ( !('kodeBarang' in request.resource.data) || isValidString(request.resource.data.kodeBarang, 50) ) &&
+          ( !('kode' in request.resource.data) || isValidString(request.resource.data.kode, 20) ) &&
+          ( !('tanggalExp' in request.resource.data) || isDateLike(request.resource.data.tanggalExp) ) &&
+          ( !('jumlah' in request.resource.data) || isNonNegativeInt(request.resource.data.jumlah) ) &&
+          ( !('satuan' in request.resource.data) || isValidString(request.resource.data.satuan, 30) ) &&
+          ( !('cycle' in request.resource.data) || (request.resource.data.cycle is int) ) &&
+          ( !('info' in request.resource.data) || (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) ) &&
+          // if holdUntil present, allow timestamp or null
+          ( !('holdUntil' in request.resource.data) || request.resource.data.holdUntil is timestamp || request.resource.data.holdUntil == null )
+        )
+      );
+
+  // Allow any signed-in user to delete products per user choice (Option A).
+  // Note: this is less restrictive than admin-only; consider auditing/logging.
+  allow delete: if isSignedIn();
+    }
+
+    // ------------------ activityLogs collection ------------------
+    // Preferably activity logs should be written by trusted server (Cloud Function). If you must write from client,
+    // restrict the possible values and require authentication.
+    match /activityLogs/{logId} {
+      allow read: if isAdmin();
+
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasAny(['action','productId','details','timestamp']) &&
+        isValidString(request.resource.data.action, 50) &&
+        ( !('productId' in request.resource.data) || isValidString(request.resource.data.productId, 80) ) &&
+        ( !('details' in request.resource.data) || (request.resource.data.details is string && request.resource.data.details.size() <= 1000) ) &&
+        // timestamp should ideally be server time to prevent tampering; allow a client
+        // timestamp only if it is not in the future (<= request.time).
+        (
+          request.resource.data.timestamp == request.time ||
+          (request.resource.data.timestamp is timestamp && request.resource.data.timestamp <= request.time)
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+      // ------------------ lookup collections for input settings ------------------
+      // Collections: blocks, productOptions, levels, codes
+      match /blocks/{id} {
+        // signed-in users may read and modify lookup options
+        allow read: if isSignedIn();
+        // For create/update validate the incoming document; for delete request.resource is empty
+        allow create: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 80);
+        allow update: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 80);
+        allow delete: if isSignedIn();
+      }
+
+      match /productOptions/{id} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 80);
+        allow update: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 80);
+        allow delete: if isSignedIn();
+      }
+
+      match /levels/{id} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 30);
+        allow update: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 30);
+        allow delete: if isSignedIn();
+      }
+
+      match /codes/{id} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 30);
+        allow update: if isSignedIn() &&
+          request.resource.data.keys().hasOnly(['value']) &&
+          isValidString(request.resource.data.value, 30);
+        allow delete: if isSignedIn();
+      }
+
+    // ------------------ fallback: deny everything else by default ------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola Product — Stock Gudang Produksi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <!-- new PWA/meta tags -->
+  <meta name="description" content="Kelola product — Stock Gudang Produksi" />
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">DATA RACKING</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="addproduct.html">Product Masuk</a></li>
+          <li class="nav-item"><a class="nav-link active" href="dashboard.html">Kelola Product</a></li>
+          <li class="nav-item"><a class="nav-link" href="settings.html">Input Setting</a></li>
+          <li id="logoutButton" class="nav-item">
+            <a class="nav-link" href="#" id="logout">Logout</a>
+          </li>
+        </ul>
+        <form class="d-flex ms-auto">
+          <input id="searchBar" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="button" id="searchButton">Search</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+
+
+  <div class="container-fluid mt-2 px-1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="mb-0">Kelola Products</h1>
+    </div>
+    <div class="card shadow-sm w-100">
+      <div class="card-body p-2">
+        <div class="table-toolbar d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold">Showing products</div>
+          <div class="d-flex gap-2">
+            <button id="exportCsvBtn" class="btn btn-sm btn-outline-secondary">Export CSV</button>
+            <button id="loadMoreBtn" class="btn btn-sm btn-outline-primary">Load more</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Block</th>
+            <th>Lantai</th>
+            <th>Product</th>
+            <th>Varian</th>
+            <th>Expired</th>
+            <th>Jumlah</th>
+            <th>Satuan</th>
+            <th>Cycle</th>
+            <th>Status</th>
+            <th>Hold Until</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="productTable"></tbody>
+      </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="updateProductModal" tabindex="-1" aria-labelledby="updateProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateProductModalLabel">Update Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="updateProductForm" class="form-grid">
+            <!-- Form yang sama seperti yang kamu berikan -->
+            <div class="mb-3">
+              <label for="gudang" class="form-label">Block</label>
+            <select id="gudang" class="form-select">
+              <option value="AA01">AA01</option>
+              <option value="AA02">AA02</option>
+              <option value="AA03">AA03</option>
+              <option value="AA04">AA04</option>
+              <option value="AA05">AA05</option>
+              <option value="AA06">AA06</option>
+              <option value="AA07">AA07</option>
+              <option value="AA08">AA08</option>
+              <option value="AB01">AB01</option>
+              <option value="AB02">AB02</option>
+              <option value="AB03">AB03</option>
+              <option value="AB04">AB04</option>
+              <option value="AB05">AB05</option>
+              <option value="AB06">AB06</option>
+              <option value="AB07">AB07</option>
+              <option value="AB08">AB08</option>
+            </select>
+            </div>
+            <div class="mb-3">
+              <label for="level" class="form-label">Lantai</label>
+              <select id="level" class="form-select">
+                <option value="L1">L1</option>
+                <option value="L2">L2</option>
+                <option value="L3">L3</option>
+                <option value="L4">L4</option>
+                <option value="L5">L5</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="kodeBarang" class="form-label">Product</label>
+              <select id="kodeBarang" class="form-select">
+                <option value="Pouch">Pouch</option>
+                <option value="Slurp">Slurp</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="kode" class="form-label">Code</label>
+            <div class="mb-3">
+              <label for="kode" class="form-label">Code</label>
+              <select id="kode" class="form-select">
+                <option value="YPS">YPS</option>
+                <option value="YPB">YPB</option>
+                <option value="YPM">YPM</option>
+                <option value="YSS">YSS</option>
+                <option value="YSB">YSB</option>
+                <option value="YSP">YSP</option>
+                <option value="YSH">YSH</option>
+                <option value="YSML">YSML</option>
+                <option value="YSCC">YSCC</option>
+                <option value="YSG">YSG</option>
+              </select>
+            </div>
+            </div>
+            <div class="mb-3">
+              <label for="tanggalExp" class="form-label">Tanggal Exp</label>
+              <input type="date" class="form-control" id="tanggalExp" required>
+            </div>
+            <div class="mb-3">
+              <label for="jumlah" class="form-label">Jumlah</label>
+              <input type="number" class="form-control" id="jumlah" required>
+            </div>
+     <div class="mb-3">
+        <label for="satuan" class="form-label">Satuan</label>
+        <select id="satuan" class="form-select">
+          <option value="Keranjang">Keranjang</option>
+          <option value="Carton">Carton</option>
+        </select>
+            <div class="mb-3">
+              <label for="cycle" class="form-label">Cycle</label>
+              <input type="number" class="form-control" id="cycle" required>
+            </div>
+            <div class="mb-3">
+              <label for="info" class="form-label">Status</label>
+              <select id="info" class="form-select">
+                <option value="Hold">Hold</option>
+                <option value="Release">Release</option>
+                <option value="Reject">Reject</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="holdUntil" class="form-label">Hold Until (days):</label>
+              <input type="number" class="form-control" id="holdUntil" min="0" required>
+            </div>
+            <div class="mb-3 full">
+              <button type="submit" class="btn btn-primary w-100">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  
+  <script type="module" src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <!-- Register Service Worker (enables installability & offline support) -->
+  <script type="module" src="js/register-sw.js"></script>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div>© secca 2025</div>
+    </div>
+  </footer>
+<!-- Search and filtering are handled in js/main.js for better performance -->
+ 
+</body>
+</html>
