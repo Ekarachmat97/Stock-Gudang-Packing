@@ -40,7 +40,7 @@ service cloud.firestore {
         isNonNegativeInt(request.resource.data.jumlah) &&
         isValidString(request.resource.data.satuan, 30) &&
         (request.resource.data.cycle is int) &&
-  (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) &&
+        (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) &&
         // createdAt must be server time (client should use serverTimestamp()).
         // Allow either the server-resolved timestamp (== request.time) OR a client-provided
         // timestamp, but only if it's NOT in the future (<= request.time). This prevents
@@ -70,7 +70,7 @@ service cloud.firestore {
           ( !('cycle' in request.resource.data) || (request.resource.data.cycle is int) ) &&
           ( !('info' in request.resource.data) || (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) ) &&
           // if holdUntil present, allow timestamp or null
-          ( !('holdUntil' in request.resource.data) || request.resource.data.holdUntil is timestamp || request.resource.data.holdUntil == null )
+          ( !('holdUntil' in request.resource.data) || request.resource.data.holdUntil is timestamp || request.resource.data.holdUntil == null || (request.resource.data.holdUntil is string && request.resource.data.holdUntil.matches('^\\d{4}-\\d{2}-\\d{2}$')) )
         )
       );
 

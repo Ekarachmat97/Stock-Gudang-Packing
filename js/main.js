@@ -11,7 +11,8 @@ import {
   serverTimestamp,
   query,
   orderBy,
-  limit
+  limit,
+  Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
 import { signOut } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js';
 import { app, auth } from './firebase.js'; // Pastikan 'auth' sudah terimport dari firebase.js
@@ -283,50 +284,94 @@ productTable.addEventListener('click', (e) => {
 const handleUpdateProduct = async (e) => {
   e.preventDefault();
 
+  // ensure user is authenticated before attempting writes
+  if (!auth || !auth.currentUser) {
+    alert('Anda harus login untuk memperbarui produk.');
+    return;
+  }
+
+  // load the latest server copy to compute minimal update and validate state
+  const productRef = doc(db, 'products', currentProductId);
+  const productSnap = await getDoc(productRef);
+  if (!productSnap.exists()) {
+    alert('Produk tidak ditemukan (sudah dihapus).');
+    updateProductModal.hide();
+    return;
+  }
+  const existing = productSnap.data();
+
+  // read form inputs
   let info = document.getElementById('info').value;
   let holdUntilDays = parseInt(document.getElementById('holdUntil').value, 10);
   const currentDate = new Date();
   let holdUntilDate = null;
 
-  // Jika 0 hari → status Verifikasi
+  // Normalize numeric fields (avoid sending NaN)
+  const jumlah = parseInt(document.getElementById('jumlah').value, 10);
+  const cycle = parseInt(document.getElementById('cycle').value, 10);
+
+  // Determine new info/holdUntil according to rules
   if (holdUntilDays === 0 && info !== 'Reject' && info !== 'Release') {
     info = 'Verifikasi';
     holdUntilDate = null;
-  }
-  // Jika Release atau Reject → langsung kosong
-  else if (info === 'Release' || info === 'Reject') {
+  } else if (info === 'Release' || info === 'Reject') {
     holdUntilDate = null;
-  }
-  // Jika > 0 → berarti Hold
-  else {
-    holdUntilDate = new Date(currentDate.setDate(currentDate.getDate() + holdUntilDays));
+  } else {
+    // >0 days and not Release/Reject -> treat as Hold
+    holdUntilDate = new Date();
+    holdUntilDate.setDate(holdUntilDate.getDate() + (isNaN(holdUntilDays) ? 0 : holdUntilDays));
     info = 'Hold';
   }
 
+  // Build minimal update payload - include only fields that should be updated.
+  const payload = {};
 
-  const updatedData = {
-    gudang: document.getElementById('gudang').value,
-    level: document.getElementById('level').value,
-    kodeBarang: document.getElementById('kodeBarang').value,
-    kode: document.getElementById('kode').value,
-    tanggalExp: document.getElementById('tanggalExp').value,
-    jumlah: parseInt(document.getElementById('jumlah').value, 10),
-    satuan: document.getElementById('satuan').value,
-    cycle: parseInt(document.getElementById('cycle').value, 10),
-    info: info,
-    holdUntil: holdUntilDate,
-  };
+  // Always allow updating these basic fields (they may be unchanged but harmless)
+  payload.gudang = document.getElementById('gudang').value;
+  payload.level = document.getElementById('level').value;
+  payload.kodeBarang = document.getElementById('kodeBarang').value;
+  payload.kode = document.getElementById('kode').value;
+  payload.tanggalExp = document.getElementById('tanggalExp').value;
+  payload.jumlah = isNaN(jumlah) ? (existing.jumlah || 0) : jumlah;
+  payload.satuan = document.getElementById('satuan').value;
+  payload.cycle = isNaN(cycle) ? (existing.cycle || 0) : cycle;
+
+  // status + holdUntil (convert JS Date -> Firestore Timestamp)
+  payload.info = info;
+  if (holdUntilDate) {
+    payload.holdUntil = Timestamp.fromDate(holdUntilDate);
+  } else {
+    // explicitly set holdUntil to null to clear previous hold
+    payload.holdUntil = null;
+  }
 
   try {
-    await updateDoc(doc(db, 'products', currentProductId), updatedData);
+    await updateDoc(productRef, payload);
 
-    // Catat log aktivitas
+    // update local cache (merge minimal changes so UI updates immediately)
+    latestProducts = latestProducts.map(p => {
+      if (p.id !== currentProductId) return p;
+      return {
+        ...p,
+        ...payload,
+        // keep createdAt from existing doc if present
+        createdAt: existing.createdAt ?? p.createdAt
+      };
+    });
+
+    // Log activity
     await logActivity('Update', currentProductId, `Produk diperbarui: status ${info}.`);
+
+    // Re-render
+    displayProducts(latestProducts);
 
     alert('Produk berhasil diperbarui!');
     updateProductModal.hide();
   } catch (error) {
     console.error('Gagal memperbarui produk:', error);
+    const code = error && error.code ? error.code : 'unknown';
+    const msg = error && error.message ? error.message : String(error);
+    alert(`Gagal memperbarui produk. (${code}) ${msg}`);
   }
 };
 
