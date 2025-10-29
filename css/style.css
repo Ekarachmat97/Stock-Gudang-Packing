@@ -207,3 +207,159 @@ input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner
 @media (max-width: 576px) {
   .site-footer { font-size: 0.82rem; padding: 0.65rem 0.5rem; }
 }
+
+/* ==== Documentation page styles ==== */
+/* Container: two-column (content + toc) on wide screens, single column on small */
+.docs-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
+/* On larger screens show TOC as a right column */
+@media (min-width: 992px) {
+  .docs-container {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+}
+
+/* Hero / header for docs */
+.docs-hero {
+  background: linear-gradient(90deg, rgba(13,110,253,0.06), rgba(102,16,242,0.04));
+  border-left: 4px solid rgba(13,110,253,0.12);
+  padding: 1.25rem 1.25rem;
+  border-radius: .75rem;
+  box-shadow: 0 10px 30px rgba(10,20,40,0.04);
+  margin-bottom: .75rem;
+}
+.docs-title {
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+  margin-bottom: .25rem;
+  letter-spacing: -0.2px;
+  color: #0b5ed7;
+}
+.docs-lead {
+  color: #495057;
+  font-size: 0.98rem;
+  margin-bottom: 0;
+}
+
+/* Main content sections */
+.docs-main section {
+  background: #fff;
+  border-radius: .5rem;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 6px 18px rgba(20,30,50,0.03);
+  margin-bottom: 1rem;
+}
+.docs-main section h2 {
+  margin-top: 0;
+  color: #212529;
+  font-weight: 700;
+}
+
+/* Table of contents (TOC) */
+.docs-toc {
+  position: relative;
+}
+.docs-toc .card {
+  border-radius: .6rem;
+  box-shadow: 0 8px 24px rgba(20,30,50,0.04);
+}
+.docs-toc .list-group-item {
+  border: none;
+  padding: .45rem .75rem;
+}
+.docs-toc a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+.docs-toc a:hover {
+  text-decoration: underline;
+}
+
+/* Keep TOC visible while scrolling on wide screens */
+@media (min-width: 992px) {
+  .docs-toc .card-body {
+    position: sticky;
+    top: 1.25rem;
+    max-height: calc(100vh - 2.5rem);
+    overflow: auto;
+    padding-right: .5rem;
+  }
+}
+
+/* Callout boxes */
+.callout {
+  border-radius: .5rem;
+  padding: .85rem 1rem;
+  margin: .5rem 0 1rem 0;
+  font-size: .95rem;
+}
+.callout-info { background: linear-gradient(90deg,#e9f5ff,#f7fbff); border-left: 4px solid #0d6efd; color: #0b5ed7; }
+.callout-warning { background: linear-gradient(90deg,#fff8e6,#fffef7); border-left: 4px solid #f59e0b; color: #7a5a00; }
+.callout-danger { background: linear-gradient(90deg,#fff1f2,#fff7f8); border-left: 4px solid #dc3545; color: #842029; }
+
+/* Code blocks and inline code */
+pre, code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+}
+pre {
+  background: #0f1724;
+  color: #e6eef8;
+  padding: .9rem;
+  border-radius: .5rem;
+  overflow: auto;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.02);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+code {
+  background: rgba(27,31,35,0.06);
+  padding: .15rem .35rem;
+  border-radius: .25rem;
+  font-size: .92em;
+}
+
+/* Tables inside docs */
+.docs-main table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.docs-main table th, .docs-main table td {
+  padding: .5rem .6rem;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Small UI niceties */
+.docs-main .btn-sm { padding: .35rem .6rem; }
+
+/* Back to top button */
+#backToTop {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  z-index: 1200;
+  display: none;
+  background: linear-gradient(90deg,#0d6efd,#6610f2);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  box-shadow: 0 8px 18px rgba(13,110,253,0.14);
+  align-items: center;
+  justify-content: center;
+}
+#backToTop.show { display: flex; }
+
+/* Responsive: collapse TOC into full-width block on small screens */
+@media (max-width: 991px) {
+  .docs-toc { order: -1; } /* show TOC above content on small screens */
+  .docs-toc .card-body { position: static; max-height: none; }
+}

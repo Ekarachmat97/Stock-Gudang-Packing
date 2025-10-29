@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dokumentasi & Tutorial — Stock Gudang Produksi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <meta name="description" content="Dokumentasi dan tutorial penggunaan aplikasi Stock Gudang Produksi" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">DATA RACKING</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="addproduct.html">Product Masuk</a></li>
+          <li class="nav-item"><a class="nav-link" href="dashboard.html">Kelola Product</a></li>
+          <li class="nav-item"><a class="nav-link" href="settings.html">Input Setting</a></li>
+          <li class="nav-item"><a class="nav-link active" href="docs.html">Dokumentasi</a></li>
+          <li id="logoutButton" class="nav-item"><a class="nav-link" href="#" id="logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- NEW: docs grid container (two-column on wide screens) -->
+  <main class="container my-4 docs-container">
+    <!-- LEFT: main content -->
+    <div class="docs-main">
+      <!-- Hero -->
+      <div class="docs-hero">
+        <h1 class="docs-title">Dokumentasi & Tutorial Pengguna</h1>
+        <p class="docs-lead">Panduan singkat & langkah-langkah untuk menggunakan aplikasi Stock Gudang Produksi. Mudah diikuti untuk user dan admin.</p>
+      </div>
+
+      <!-- Section: Ringkasan -->
+      <section id="ringkasan" class="mb-4">
+        <h2>Ringkasan singkat</h2>
+        <p>Aplikasi ini membantu Anda mengelola stock gudang produksi (racking). Anda dapat menambah produk, mengelola status Hold/Release/Reject, menggunakan lookup settings, dan mengekspor data ke CSV.</p>
+      </section>
+
+      <!-- Section: Quickstart -->
+      <section id="quickstart" class="mb-4">
+        <h2>Persiapan cepat (Quickstart)</h2>
+        <ol>
+          <li>Buka index.html dan registrasi/login (Email & Password).</li>
+          <li>Masuk ke <strong>Product Masuk</strong> untuk menambahkan item baru.</li>
+          <li>Gunakan <strong>Kelola Product</strong> untuk melihat, update, hapus, dan export CSV.</li>
+          <li>Atur pilihan seperti Block / Product di <strong>Input Setting</strong>.</li>
+        </ol>
+      </section>
+
+      <!-- Section: Add Product -->
+      <section id="addproduct" class="mb-4">
+        <h2>Menambahkan product (langkah demi langkah)</h2>
+        <ol>
+          <li>Buka <em>Product Masuk</em> (addproduct.html).</li>
+          <li>Isi field: Block, Lantai, Product, Code, Tanggal Exp, Jumlah, Satuan, Cycle.</li>
+          <li>Pilih Status:
+            <ul>
+              <li><strong>Hold</strong>: produk ditahan hingga Hold Until habis (masukkan hari pada Hold Until).</li>
+              <li><strong>Release</strong>: produk siap packing — Deskripsi otomatis menjadi <code>Ready Packing</code>.</li>
+              <li><strong>Reject</strong>: produk ditolak; Hold Until akan diabaikan.</li>
+            </ul>
+          </li>
+          <li>Deskripsi: opsional, tapi bila pilih Release sistem akan menimpa Deskripsi menjadi "Ready Packing".</li>
+          <li>Tekan <em>Add Product</em>. Jika sukses, form akan reset.</li>
+        </ol>
+        <small class="text-muted">Catatan: Anda harus login untuk menambahkan product.</small>
+      </section>
+
+      <!-- Section: Dashboard -->
+      <section id="dashboard" class="mb-4">
+        <h2>Kelola product (Dashboard)</h2>
+        <p>Di <strong>Kelola Product</strong> Anda bisa:</p>
+        <ul>
+          <li>Mencari produk dengan search bar (mencakup deskripsi dan tanggal).</li>
+          <li>Mengurutkan otomatis berdasarkan tanggal Exp (FIFO).</li>
+          <li>Mengupdate produk: klik tombol <em>Update</em>, ubah field pada modal lalu <em>Save</em>.</li>
+          <li>Hapus produk: tombol <em>Out</em> (akan meminta konfirmasi).</li>
+          <li>Export daftar ke CSV (hanya data yang sedang tampil / terfilter).</li>
+        </ul>
+        <p class="mb-0"><strong>Perilaku khusus:</strong> kalau HoldUntil kadaluarsa client akan otomatis mengubah status menjadi <code>Release</code> dan men-set deskripsi menjadi <code>Ready Packing</code>.</p>
+      </section>
+
+      <!-- Section: Settings -->
+      <section id="settings" class="mb-4">
+        <h2>Input Setting</h2>
+        <p>Gunakan halaman <strong>Input Setting</strong> untuk menambah atau menghapus pilihan Block, Product, Lantai, atau Code. Hanya pengguna yang login dapat menambah/hapus.</p>
+      </section>
+
+      <!-- Section: Export -->
+      <section id="export" class="mb-4">
+        <h2>Export CSV</h2>
+        <p>Tekan tombol <em>Export CSV</em> di dashboard. File akan diunduh dengan nama <code>products-YYYYMMDD.csv</code>. Baris di-export sesuai data yang sedang tampil di tabel (filter/search berlaku).</p>
+      </section>
+
+      <!-- Section: Deskripsi rules -->
+      <section id="rules" class="mb-4">
+        <h2>Aturan penting & Deskripsi otomatis</h2>
+        <ul>
+          <li>Jika status dipilih <strong>Release</strong> (baik saat create maupun update), sistem otomatis mengisi <code>deskripsi = "Ready Packing"</code>.</li>
+          <li>Jika status <strong>Hold</strong> dan <code>holdUntil</code> telah lewat, aplikasi client mengubah status menjadi <strong>Release</strong> dan juga set <code>deskripsi</code> menjadi "Ready Packing".</li>
+        </ul>
+      </section>
+
+      <!-- Section: Troubleshooting -->
+      <section id="troubleshooting" class="mb-4">
+        <h2>Troubleshooting cepat</h2>
+        <ul>
+          <li><strong>Permission denied (Firestore):</strong> pastikan Anda sudah login dan rules Firestore sesuai; cek pesan error di console.</li>
+          <li><strong>Service worker tidak aktif:</strong> jalankan via server lokal (tidak berjalan di file://). Lakukan hard-refresh atau unregister SW bila perubahan tidak muncul.</li>
+          <li><strong>CSV kosong:</strong> pastikan ada produk yang dimuat; tekan Load more jika perlu.</li>
+        </ul>
+      </section>
+
+      <!-- Section: FAQ -->
+      <section id="faq" class="mb-4">
+        <h2>FAQ singkat</h2>
+        <dl>
+          <dt>Apa itu Hold Until?</dt>
+          <dd>Jumlah hari produk di-hold sejak hari ini. Setelah habis, produk akan auto-release (jika masih hold).</dd>
+          <dt>Mengapa Deskripsi berubah menjadi Ready Packing?</dt>
+          <dd>Ini aturan bisnis: produk berstatus Release dianggap siap packing.</dd>
+        </dl>
+      </section>
+
+      <!-- Section: Contact -->
+      <section id="contact" class="mb-4">
+        <h2>Kontak / Bantuan</h2>
+        <p>Untuk bantuan lebih lanjut: hubungi Secca : +6289691213179 atau kembangkan sesuai catatan pada <code>DOCUMENTATION.md</code>.</p>
+        <p><a href="DOCUMENTATION.md" class="btn btn-outline-secondary btn-sm">Buka DOCUMENTATION.md (detail teknis)</a></p>
+      </section>
+    </div>
+
+    <!-- RIGHT: Table of Contents (TOC) -->
+    <aside class="docs-toc">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-2">Daftar Isi</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item"><a href="#ringkasan">Ringkasan singkat</a></li>
+            <li class="list-group-item"><a href="#quickstart">Quickstart</a></li>
+            <li class="list-group-item"><a href="#addproduct">Menambahkan product</a></li>
+            <li class="list-group-item"><a href="#dashboard">Kelola product (Dashboard)</a></li>
+            <li class="list-group-item"><a href="#settings">Input Setting</a></li>
+            <li class="list-group-item"><a href="#export">Export CSV</a></li>
+            <li class="list-group-item"><a href="#rules">Aturan penting</a></li>
+            <li class="list-group-item"><a href="#troubleshooting">Troubleshooting</a></li>
+            <li class="list-group-item"><a href="#faq">FAQ</a></li>
+            <li class="list-group-item"><a href="#contact">Kontak</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- NEW: back to top button -->
+  <button id="backToTop" title="Back to top" aria-label="Back to top">↑</button>
+
+  <script>
+    // minimal JS for back-to-top visibility and smooth scroll
+    (function(){
+      const btn = document.getElementById('backToTop');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) btn.classList.add('show'); else btn.classList.remove('show');
+      });
+      btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      // smooth scroll for TOC links
+      document.querySelectorAll('.docs-toc a[href^="#"]').forEach(a=>{
+        a.addEventListener('click', (e)=>{
+          e.preventDefault();
+          const id = a.getAttribute('href').slice(1);
+          const el = document.getElementById(id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

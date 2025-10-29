@@ -82,7 +82,8 @@ const displayProducts = async (products) => {
       const p = updateDoc(doc(db, 'products', product.id), {
         info: 'Release',
         holdUntil: null,
-      }).then(() => logActivity('Auto-Update', product.id, `Status diubah menjadi 'Release' karena holdUntil habis.`))
+        deskripsi: 'Ready Packing'
+      }).then(() => logActivity('Auto-Update', product.id, `Status diubah menjadi 'Release' (Ready Packing) karena holdUntil habis.`))
         .catch((err) => console.error('Auto-update failed for', product.id, err));
       updatePromises.push(p);
     }
@@ -127,6 +128,7 @@ const displayProducts = async (products) => {
       <td>${product.satuan}</td>
       <td>${product.cycle}</td>
       <td class="${statusClass}">${product.info}</td>
+      <td>${(product.deskripsi || '').replace(/\n/g, ' ')}</td> <!-- NEW: Deskripsi column (inline, newline removed) -->
       <td>${daysRemaining > 0 ? daysRemaining + ' Hari' : '0 Hari'}</td>
       <td class="action-buttons">
         ${isSignedIn
@@ -261,6 +263,10 @@ const openUpdateModal = async (productId) => {
     document.getElementById('satuan').value = product.satuan || '';
     document.getElementById('cycle').value = product.cycle || '';
     document.getElementById('info').value = product.info || 'Hold';
+    // Populate deskripsi
+    if (document.getElementById('deskripsi')) {
+      document.getElementById('deskripsi').value = product.deskripsi || '';
+    }
     document.getElementById('holdUntil').value = product.holdUntil
       ? Math.ceil((new Date(product.holdUntil.seconds * 1000) - new Date()) / (1000 * 60 * 60 * 24))
       : 0;
@@ -335,6 +341,14 @@ const handleUpdateProduct = async (e) => {
   payload.jumlah = isNaN(jumlah) ? (existing.jumlah || 0) : jumlah;
   payload.satuan = document.getElementById('satuan').value;
   payload.cycle = isNaN(cycle) ? (existing.cycle || 0) : cycle;
+
+  // Deskripsi handling: use textarea unless status is Release (auto => Ready Packing)
+  const deskripsiInput = (document.getElementById('deskripsi') && document.getElementById('deskripsi').value) || '';
+  if (info === 'Release') {
+    payload.deskripsi = 'Ready Packing';
+  } else {
+    payload.deskripsi = deskripsiInput;
+  }
 
   // status + holdUntil (convert JS Date -> Firestore Timestamp)
   payload.info = info;
@@ -415,7 +429,7 @@ const doSearch = () => {
     const expFormatted = formatDate(p.tanggalExp).toLowerCase(); // localized display date
     const expRaw = p.tanggalExp ? String(p.tanggalExp).toLowerCase() : '';
     const holdFormatted = formatDateFromPossibleTimestamp(p.holdUntil).toLowerCase();
-    const baseText = `${p.gudang} ${p.level} ${p.kodeBarang} ${p.kode} ${p.info} ${p.jumlah}`.toLowerCase();
+    const baseText = `${p.gudang} ${p.level} ${p.kodeBarang} ${p.kode} ${p.info} ${p.jumlah} ${(p.deskripsi || '')}`.toLowerCase();
     // include both formatted and raw date strings so user can search by e.g. "2025-10-29" or "29/10/2025"
     const combined = `${baseText} ${expFormatted} ${expRaw} ${holdFormatted}`;
     return combined.includes(keyword);
@@ -459,12 +473,12 @@ const exportToCsv = (products) => {
     return;
   }
 
-  const headers = ['Block','Lantai','Product','Code','Expired','Jumlah','Satuan','Cycle','Status','HoldUntil','CreatedAt'];
+  const headers = ['Block','Lantai','Product','Code','Expired','Jumlah','Satuan','Cycle','Status','Deskripsi','HoldUntil','CreatedAt'];
   const rows = products.map(p => {
     const exp = formatDate(p.tanggalExp);
     const hold = formatDateFromPossibleTimestamp(p.holdUntil);
     const created = formatDateFromPossibleTimestamp(p.createdAt);
-    return [p.gudang, p.level, p.kodeBarang, p.kode, exp, p.jumlah, p.satuan, p.cycle, p.info, hold, created];
+    return [p.gudang, p.level, p.kodeBarang, p.kode, exp, p.jumlah, p.satuan, p.cycle, p.info, (p.deskripsi || ''), hold, created];
   });
 
   const csvContent = [headers].concat(rows).map(r => r.map(cell => '"' + String(cell ?? '').replace(/"/g,'""') + '"').join(',')).join('\n');

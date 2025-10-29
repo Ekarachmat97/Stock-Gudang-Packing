@@ -17,6 +17,11 @@ service cloud.firestore {
       return value is string && value.size() > 0 && value.size() <= maxLen;
     }
 
+    // allow empty or non-empty string up to maxLen
+    function isStringMax(value, maxLen) {
+      return value is string && value.size() <= maxLen;
+    }
+
     function isNonNegativeInt(value) {
       return value is int && value >= 0;
     }
@@ -50,6 +55,29 @@ service cloud.firestore {
           (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time)
         );
 
+      // Note: if you want deskripsi required on create, include it above in hasAll and validate as below.
+      // Accept deskripsi as optional on create: if present, must be string <=1000 chars.
+      allow create: if isSignedIn() && (
+        // keep the original strict create guard (above) OR allow a variant which includes deskripsi
+        (
+          request.resource.data.keys().hasAll(['gudang','level','kodeBarang','kode','tanggalExp','jumlah','satuan','cycle','info','createdAt','deskripsi']) &&
+          isValidString(request.resource.data.gudang, 20) &&
+          isValidString(request.resource.data.level, 10) &&
+          isValidString(request.resource.data.kodeBarang, 50) &&
+          isValidString(request.resource.data.kode, 20) &&
+          isDateLike(request.resource.data.tanggalExp) &&
+          isNonNegativeInt(request.resource.data.jumlah) &&
+          isValidString(request.resource.data.satuan, 30) &&
+          (request.resource.data.cycle is int) &&
+          (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) &&
+          isStringMax(request.resource.data.deskripsi, 1000) &&
+          (
+            request.resource.data.createdAt == request.time ||
+            (request.resource.data.createdAt is timestamp && request.resource.data.createdAt <= request.time)
+          )
+        )
+      );
+
       allow update: if isSignedIn() && (
         // admin can update anything
         isAdmin() ||
@@ -70,7 +98,9 @@ service cloud.firestore {
           ( !('cycle' in request.resource.data) || (request.resource.data.cycle is int) ) &&
           ( !('info' in request.resource.data) || (request.resource.data.info in ['Hold','Release','Reject','Verifikasi']) ) &&
           // if holdUntil present, allow timestamp or null
-          ( !('holdUntil' in request.resource.data) || request.resource.data.holdUntil is timestamp || request.resource.data.holdUntil == null || (request.resource.data.holdUntil is string && request.resource.data.holdUntil.matches('^\\d{4}-\\d{2}-\\d{2}$')) )
+          ( !('holdUntil' in request.resource.data) || request.resource.data.holdUntil is timestamp || request.resource.data.holdUntil == null || (request.resource.data.holdUntil is string && request.resource.data.holdUntil.matches('^\\d{4}-\\d{2}-\\d{2}$')) ) &&
+          // allow deskripsi when present (string up to 1000 chars)
+          ( !('deskripsi' in request.resource.data) || isStringMax(request.resource.data.deskripsi, 1000) )
         )
       );
 

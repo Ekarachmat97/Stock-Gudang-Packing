@@ -45,6 +45,9 @@ if (productForm) {
   let info = document.getElementById('info').value;
     const holdUntilDays = parseInt(document.getElementById('holdUntil').value) || 0;
 
+    // Read deskripsi (optional)
+    let deskripsi = (document.getElementById('deskripsi') && document.getElementById('deskripsi').value.trim()) || '';
+
     // Menghitung tanggal Hold Until sesuai input pengguna
     const createdAt = serverTimestamp();
     let holdUntilDate = null; // Default null
@@ -59,6 +62,11 @@ if (productForm) {
     } else if (info === 'Hold' && holdUntilDays > 0) {
       holdUntilDate = new Date();
       holdUntilDate.setDate(holdUntilDate.getDate() + holdUntilDays); // Menambahkan hari sesuai input pengguna
+    }
+
+    // If the product is released, ensure deskripsi is auto-set
+    if (info === 'Release') {
+      deskripsi = 'Ready Packing';
     }
 
     // Menambahkan produk ke Firestore dengan properti 'createdAt' dan 'holdUntil'
@@ -82,6 +90,7 @@ if (productForm) {
         info,
         createdAt,
         holdUntil: holdUntilDate ? holdUntilDate : null,
+        deskripsi, // NEW: include deskripsi
       };
       console.log('Adding product. user=', auth.currentUser && auth.currentUser.uid, 'payload=', payload);
 

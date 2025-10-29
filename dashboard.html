@@ -30,6 +30,7 @@
           <li class="nav-item"><a class="nav-link" href="addproduct.html">Product Masuk</a></li>
           <li class="nav-item"><a class="nav-link active" href="dashboard.html">Kelola Product</a></li>
           <li class="nav-item"><a class="nav-link" href="settings.html">Input Setting</a></li>
+          <li class="nav-item"><a class="nav-link active" href="docs.html">Dokumentasi</a></li>
           <li id="logoutButton" class="nav-item">
             <a class="nav-link" href="#" id="logout">Logout</a>
           </li>
@@ -70,6 +71,7 @@
             <th>Satuan</th>
             <th>Cycle</th>
             <th>Status</th>
+            <th>Deskripsi</th>
             <th>Hold Until</th>
             <th>Action</th>
           </tr>
@@ -172,6 +174,12 @@
                 <option value="Reject">Reject</option>
               </select>
             </div>
+
+            <div class="mb-3">
+              <label for="deskripsi" class="form-label">Deskripsi</label>
+              <textarea id="deskripsi" class="form-control" rows="2" placeholder="Catatan / deskripsi (opsional)"></textarea>
+            </div>
+
             <div class="mb-3">
               <label for="holdUntil" class="form-label">Hold Until (days):</label>
               <input type="number" class="form-control" id="holdUntil" min="0" required>
