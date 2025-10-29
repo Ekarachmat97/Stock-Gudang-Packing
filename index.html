@@ -1,3 +1,5 @@
+<!-- Source code dibuat oleh secca | 2025 -->
+<!-- Kepo banget lu goblok -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,10 +17,9 @@
         .brand{height:60px;width:60px;border-radius:12px;background:linear-gradient(135deg,#0d6efd,#6610f2);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px}
         .card-body { padding: 2rem; }
         .form-control:focus{box-shadow:0 0 0 .15rem rgba(13,110,253,.15)}
-        /* Loading overlay: center on screen as an overlay */
         #loadingContainer{
             position:fixed;
-            inset:0; /* top:0; right:0; bottom:0; left:0 */
+            inset:0;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -26,17 +27,19 @@
             z-index:1050;
             padding:1rem;
         }
-        /* Ensure .hidden still hides the loading container despite the ID rule */
         #loadingContainer.hidden{display:none}
         @media (max-width:420px){ .card{width:100% !important;margin:0 12px} .brand{height:50px;width:50px;font-size:18px} }
     </style>
-    <!-- new PWA/meta tags -->
+    <!-- meta tags -->
     <meta name="description" content="Stock Gudang Produksi — manajemen inventory racking" />
     <meta name="theme-color" content="#0d6efd" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" href="https://freshfactory.id/media/public/testimoni/new-title-14062023-115752.png?v=2" />
+    <link rel="apple-touch-icon" href="https://freshfactory.id/media/public/testimoni/new-title-14062023-115752.png?v=2" />
+    <link rel="shortcut icon" href="https://freshfactory.id/media/public/testimoni/new-title-14062023-115752.png?v=2" type="image/png">
+
 </head>
 <body class="bg-light">
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
@@ -108,7 +111,6 @@
     </div>
 
     <script type="module">
-        // Use shared firebase initialization from ./js/firebase.js
         import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
         import { auth } from './js/firebase.js';
 
@@ -122,7 +124,6 @@
         const errorMessage = document.getElementById('errorMessage');
         const togglePasswordBtn = document.getElementById('togglePassword');
 
-        // Track which view is active so toggleLoading can restore it
         let currentView = 'login';
 
         // Helper functions

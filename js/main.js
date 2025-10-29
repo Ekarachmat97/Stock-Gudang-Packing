@@ -404,6 +404,7 @@ const debounce = (fn, wait) => {
   };
 };
 
+// updated: include tanggalExp and holdUntil in searchable text
 const doSearch = () => {
   const keyword = (searchBar && searchBar.value || '').toLowerCase().trim();
   if (!keyword) {
@@ -411,14 +412,24 @@ const doSearch = () => {
     return;
   }
   const filtered = latestProducts.filter(p => {
-    const text = `${p.gudang} ${p.level} ${p.kodeBarang} ${p.kode} ${p.info} ${p.jumlah}`.toLowerCase();
-    return text.includes(keyword);
+    const expFormatted = formatDate(p.tanggalExp).toLowerCase(); // localized display date
+    const expRaw = p.tanggalExp ? String(p.tanggalExp).toLowerCase() : '';
+    const holdFormatted = formatDateFromPossibleTimestamp(p.holdUntil).toLowerCase();
+    const baseText = `${p.gudang} ${p.level} ${p.kodeBarang} ${p.kode} ${p.info} ${p.jumlah}`.toLowerCase();
+    // include both formatted and raw date strings so user can search by e.g. "2025-10-29" or "29/10/2025"
+    const combined = `${baseText} ${expFormatted} ${expRaw} ${holdFormatted}`;
+    return combined.includes(keyword);
   });
   displayProducts(filtered);
 };
 
 if (searchButton && searchBar) {
-  searchButton.addEventListener('click', doSearch);
+  // click explicitly triggers search and shows results
+  searchButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    doSearch();
+  });
+  // keep debounced live-search and Enter handling
   searchBar.addEventListener('keyup', debounce((e) => {
     if (e.key === 'Enter') doSearch();
     else doSearch();
